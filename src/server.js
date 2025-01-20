@@ -1,0 +1,77 @@
+const Hapi = require('@hapi/hapi');
+const Vision = require('@hapi/vision');
+const Handlebars = require('handlebars');
+const path = require('path');
+const { NotesValidator, ProductsValidator } = require('./validator/notes');
+const notes = require('./api/notes');
+const products = require('./api/products');
+const NotesService = require('./services/inMemory/NotesService');
+const ProductsService = require('./services/inMemory/ProductsService');
+const ClientError = require('./exceptions/ClientError');
+
+const init = async () => {
+  const notesService = new NotesService();
+  const productsService = ProductsService;
+  const server = Hapi.server({
+    port: 3000,
+    host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
+    routes: {
+      cors: {
+        origin: ['*'],
+      },
+    },
+  });
+
+  await server.register({
+    plugin: notes,
+    options: {
+      service: notesService,
+      validator: NotesValidator,
+    },
+  });
+
+  await server.register({
+    plugin: products,
+    options: {
+      service: productsService,
+      validator: ProductsValidator,
+    },
+  });
+
+  await server.register(Vision);
+
+  server.ext('onPreResponse', (request, h) => {
+    const { response } = request;
+
+    if (response instanceof ClientError) {
+      const newResponse = h.response({
+        status: 'fail',
+        message: response.message,
+      });
+      newResponse.code(response.statusCode);
+      return newResponse;
+    }
+    return h.continue;
+  });
+
+  server.views({
+    engines: {
+      hbs: Handlebars,
+    },
+    path: path.join('src/views'),
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/haha',
+    handler: (request, h) => h.view('index', {
+      title: 'Hapi.js with Handlebars',
+      message: 'Ini adalah template rendering engine menggunakan handlebars dan plugin vision',
+    }),
+  });
+
+  await server.start();
+  console.log(`Server berjalan pada ${server.info.uri}`);
+};
+
+init();
