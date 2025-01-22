@@ -2,3 +2,5 @@ node_modules
 notes-api-webserver.pem
 test.js
 package-lock.json
+.env
+.prod.env

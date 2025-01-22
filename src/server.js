@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const Hapi = require('@hapi/hapi');
 const Vision = require('@hapi/vision');
 const Handlebars = require('handlebars');
@@ -5,7 +7,7 @@ const path = require('path');
 const { NotesValidator, ProductsValidator } = require('./validator/notes');
 const notes = require('./api/notes');
 const products = require('./api/products');
-const NotesService = require('./services/inMemory/NotesService');
+const NotesService = require('./services/postgres/NotesService');
 const ProductsService = require('./services/inMemory/ProductsService');
 const ClientError = require('./exceptions/ClientError');
 
@@ -13,8 +15,8 @@ const init = async () => {
   const notesService = new NotesService();
   const productsService = ProductsService;
   const server = Hapi.server({
-    port: 3000,
-    host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
+    port: process.env.PORT,
+    host: process.env.HOST,
     routes: {
       cors: {
         origin: ['*'],
@@ -66,7 +68,8 @@ const init = async () => {
     path: '/haha',
     handler: (request, h) => h.view('index', {
       title: 'Hapi.js with Handlebars',
-      message: 'Ini adalah template rendering engine menggunakan handlebars dan plugin vision',
+      message:
+        'Ini adalah template rendering engine menggunakan handlebars dan plugin vision',
     }),
   });
 

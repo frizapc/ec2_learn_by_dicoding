@@ -6,8 +6,9 @@
   "scripts": {
     "start:prod": "NODE_ENV=production node ./src/server.js",
     "start:dev": "nodemon ./src/server.js",
-    "connect:ec2": "ssh -i \"notes-api-webserver.pem\" ubuntu@ec2-18-138-58-5.ap-southeast-1.compute.amazonaws.com",
-    "lint": "eslint ./src"
+    "connect:ec2": "ssh -i \"notes-api-webserver.pem\" ubuntu@ec2-13-215-193-23.ap-southeast-1.compute.amazonaws.com",
+    "lint": "eslint ./src",
+    "migrate": "node-pg-migrate"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +22,11 @@
   "dependencies": {
     "@hapi/hapi": "^21.3.2",
     "@hapi/vision": "^7.0.3",
+    "dotenv": "^16.4.7",
     "handlebars": "^4.7.8",
     "joi": "^17.13.3",
-    "nanoid": "^3.1.20"
+    "nanoid": "^3.1.20",
+    "node-pg-migrate": "^7.9.0",
+    "pg": "^8.13.1"
   }
 }
