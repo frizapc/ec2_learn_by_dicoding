@@ -4,3 +4,4 @@ test.js
 package-lock.json
 .env
 .prod.env
+src/api/uploads/file

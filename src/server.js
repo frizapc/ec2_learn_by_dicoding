@@ -1,8 +1,10 @@
+/* eslint-disable no-underscore-dangle */
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Vision = require('@hapi/vision');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
 
 const Handlebars = require('handlebars');
 const path = require('path');
@@ -31,6 +33,10 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
 const TokenManager = require('./tokenize/TokenManager');
 
 const init = async () => {
@@ -38,6 +44,9 @@ const init = async () => {
   const notesService = new NotesService(collaborationsService);
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'api/uploads/file/images'),
+  );
 
   const productsService = ProductsService;
   const server = Hapi.server({
@@ -53,6 +62,12 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
+    },
+    {
+      plugin: Vision,
     },
   ]);
 
@@ -112,6 +127,13 @@ const init = async () => {
         validator: ExportsValidator,
       },
     },
+    {
+      plugin: uploads,
+      options: {
+        service: storageService,
+        validator: UploadsValidator,
+      },
+    },
   ]);
 
   await server.register({
@@ -121,8 +143,6 @@ const init = async () => {
       validator: ProductsValidator,
     },
   });
-
-  await server.register(Vision);
 
   server.ext('onPreResponse', (request, h) => {
     const { response } = request;
